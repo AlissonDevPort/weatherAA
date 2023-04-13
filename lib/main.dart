@@ -6,7 +6,7 @@ import 'package:paramor/views/current_weather.dart';
 import 'package:paramor/views/infoday.dart';
 import 'package:location/location.dart';
 
-Future<void> main()async {
+Future<void> main() async {
   await dotenv.load(fileName: "lib/.env");
   String apiKey = dotenv.get('API_KEY');
   runApp(const MyApp());
@@ -38,27 +38,30 @@ class _HomePageState extends State<HomePage> {
     data = await client.getCurrentWeather(_controller.text);
   }
 
-  // Location location = new Location();
-  // late bool _serviceEnabled;
-  // late PermissionStatus _permissionStatus;
-  // late LocationData _locationData;
-  //
-  // Future<dynamic> getLocation() async {
-  //   _serviceEnabled = await location.serviceEnabled();
-  //   if (!_serviceEnabled) _serviceEnabled = await location.requestService();
-  //   _permissionStatus = await location.hasPermission();
-  //   if (_permissionStatus == PermissionStatus.denied) {
-  //     _permissionStatus = await location.requestPermission();
-  //   }
-  //   _locationData = await location.getLocation();
-  // }
+  Location location = new Location();
+  late bool _serviceEnabled;
+  late PermissionStatus _permissionStatus;
+  late LocationData _locationData;
+  String latitude = "";
+  String longitude = "";
+
+  Future<dynamic> getLocation() async {
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) _serviceEnabled = await location.requestService();
+    _permissionStatus = await location.hasPermission();
+    if (_permissionStatus == PermissionStatus.denied) {
+      _permissionStatus = await location.requestPermission();
+    }
+    _locationData = await location.getLocation();
+    return _locationData;
+  }
+
   TextEditingController _controller = TextEditingController();
 
   void initState() {
     super.initState();
     _controller.text = 'London';
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +75,35 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(color: Colors.white70),
           ),
           centerTitle: true,
+          leading: IconButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Hold Up!'),
+                    content: Text('As you know, we are an weather app! '
+                        'and we need your current location to '
+                        'improve our accurence. '),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          getLocation().then((value) {
+                            print(value);
+                          });
+                        },
+                        child: Text('Accept'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text('I dont consent'),
+                      )
+                    ],
+                  ),
+                );
+              },
+              icon: Icon(Icons.add_location_alt)),
         ),
         body: SingleChildScrollView(
           child: Column(
